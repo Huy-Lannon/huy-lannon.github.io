@@ -549,7 +549,7 @@
             letter-spacing: 1.5px;
             text-transform: uppercase;
             box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-            display: none;
+            display: block;
             z-index: 1000;
         }
 
@@ -1623,16 +1623,19 @@
             e.preventDefault();
             // Save the event so it can be triggered later
             deferredPrompt = e;
-            // Show the install buttons
-            installBtn.classList.add('show');
-            installBtnLogin.classList.add('show');
-            installBtnSignup.classList.add('show');
+            // Buttons are already visible by default
         });
 
         // Handle all install buttons
         [installBtn, installBtnLogin, installBtnSignup].forEach(btn => {
             btn.addEventListener('click', async () => {
                 if (!deferredPrompt) {
+                    // If no install prompt available, show instructions
+                    if (window.matchMedia('(display-mode: standalone)').matches) {
+                        alert('App is already installed!');
+                    } else {
+                        alert('To install this app:\n\niPhone/iPad: Tap the Share button and select "Add to Home Screen"\n\nAndroid: Tap the menu (⋮) and select "Add to Home screen" or "Install app"');
+                    }
                     return;
                 }
                 // Show the install prompt
@@ -1643,17 +1646,17 @@
                 // Clear the deferredPrompt
                 deferredPrompt = null;
                 // Hide the install buttons
-                installBtn.classList.remove('show');
-                installBtnLogin.classList.remove('show');
-                installBtnSignup.classList.remove('show');
+                installBtn.style.display = 'none';
+                installBtnLogin.style.display = 'none';
+                installBtnSignup.style.display = 'none';
             });
         });
 
         // Hide button after successful install
         window.addEventListener('appinstalled', () => {
-            installBtn.classList.remove('show');
-            installBtnLogin.classList.remove('show');
-            installBtnSignup.classList.remove('show');
+            installBtn.style.display = 'none';
+            installBtnLogin.style.display = 'none';
+            installBtnSignup.style.display = 'none';
             console.log('PWA installed successfully');
         });
 
