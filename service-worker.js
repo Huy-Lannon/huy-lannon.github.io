@@ -1,7 +1,7 @@
 const CACHE_NAME = 'between-lines-v1';
 const urlsToCache = [
-  '/between-lines/',
-  '/between-lines/index.html',
+  '/',
+  '/literary-app.html',
   'https://fonts.googleapis.com/css2?family=Crimson+Pro:wght@300;400;500&family=Work+Sans:wght@300;400;500&display=swap'
 ];
 
