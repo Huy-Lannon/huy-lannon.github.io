@@ -968,17 +968,20 @@
         const auth = getAuth(app);
         const db = getFirestore(app);
         
-        // Initialize messaging only after service worker is ready
+        // Initialize messaging - must be done at top level
         let messaging = null;
         
-        // Register Firebase Messaging service worker
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('/firebase-messaging-sw.js')
-                .then(async (registration) => {
+        // Initialize messaging after page loads
+        async function initializeMessaging() {
+            try {
+                if ('serviceWorker' in navigator) {
+                    // Register Firebase Messaging service worker first
+                    await navigator.serviceWorker.register('/firebase-messaging-sw.js');
                     console.log('Firebase Messaging service worker registered');
                     
-                    // Now initialize messaging with the service worker
+                    // Now initialize messaging
                     messaging = getMessaging(app);
+                    console.log('Messaging initialized:', messaging);
                     
                     // Handle foreground messages (when app is open)
                     onMessage(messaging, (payload) => {
@@ -994,9 +997,14 @@
                         
                         new Notification(notificationTitle, notificationOptions);
                     });
-                })
-                .catch(err => console.error('Firebase Messaging SW registration failed:', err));
+                }
+            } catch (err) {
+                console.error('Error initializing messaging:', err);
+            }
         }
+        
+        // Call initialization
+        initializeMessaging();
         
         console.log('=== FIREBASE INITIALIZATION ===');
         console.log('✅ Firebase initialized successfully');
