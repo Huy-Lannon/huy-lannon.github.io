@@ -1727,12 +1727,14 @@
                             console.log('FCM Token:', currentToken);
                             
                             // Save token to Firestore for server-side notifications
-                            const user = auth.currentUser;
+                            const user = window.debugAuth ? window.debugAuth.currentUser : null;
                             if (user) {
-                                await setDoc(doc(db, 'users', user.uid), {
+                                await setDoc(doc(window.debugDB, 'users', user.uid), {
                                     fcmToken: currentToken
                                 }, { merge: true });
                                 console.log('FCM token saved to Firestore');
+                            } else {
+                                console.warn('User not logged in, cannot save FCM token');
                             }
                             
                             return true;
