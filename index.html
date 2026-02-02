@@ -967,14 +967,42 @@
         const app = initializeApp(firebaseConfig);
         const auth = getAuth(app);
         const db = getFirestore(app);
-        const messaging = getMessaging(app);
+        
+        // Initialize messaging only after service worker is ready
+        let messaging = null;
+        
+        // Register Firebase Messaging service worker
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('/firebase-messaging-sw.js')
+                .then(async (registration) => {
+                    console.log('Firebase Messaging service worker registered');
+                    
+                    // Now initialize messaging with the service worker
+                    messaging = getMessaging(app);
+                    
+                    // Handle foreground messages (when app is open)
+                    onMessage(messaging, (payload) => {
+                        console.log('Foreground message received:', payload);
+                        
+                        const notificationTitle = payload.notification.title || 'Between Lines';
+                        const notificationOptions = {
+                            body: payload.notification.body || 'A quiet thought for today.',
+                            icon: '/icon-192.png',
+                            badge: '/icon-192.png',
+                            tag: 'daily-reminder'
+                        };
+                        
+                        new Notification(notificationTitle, notificationOptions);
+                    });
+                })
+                .catch(err => console.error('Firebase Messaging SW registration failed:', err));
+        }
         
         console.log('=== FIREBASE INITIALIZATION ===');
         console.log('✅ Firebase initialized successfully');
         console.log('Auth object:', auth);
         console.log('Auth domain:', auth.config.authDomain);
         console.log('DB object:', db);
-        console.log('Messaging object:', messaging);
         
         // Make auth available globally for debugging
         window.debugAuth = auth;
@@ -1676,6 +1704,12 @@
                     
                     // Get FCM token
                     try {
+                        // Wait for messaging to be initialized
+                        if (!messaging) {
+                            console.error('Messaging not initialized yet');
+                            return false;
+                        }
+                        
                         // Get FCM token with your VAPID key
                         const currentToken = await getToken(messaging, {
                             vapidKey: 'BII98JRmwmT_X5fkWsgVojbD6hGEHYmVEHRKFasf38sA35DPgRjXG1z6v7JfTghIpurVDSkp8gxbxf3YqUlR0Ag'
@@ -1690,6 +1724,7 @@
                                 await setDoc(doc(db, 'users', user.uid), {
                                     fcmToken: currentToken
                                 }, { merge: true });
+                                console.log('FCM token saved to Firestore');
                             }
                             
                             return true;
@@ -1705,22 +1740,6 @@
             }
             return false;
         }
-
-        // Handle foreground messages (when app is open)
-        onMessage(messaging, (payload) => {
-            console.log('Foreground message received:', payload);
-            
-            // Show notification even when app is in foreground
-            const notificationTitle = payload.notification.title || 'Between Lines';
-            const notificationOptions = {
-                body: payload.notification.body || 'A quiet thought for today.',
-                icon: '/icon-192.png',
-                badge: '/icon-192.png',
-                tag: 'daily-reminder'
-            };
-            
-            new Notification(notificationTitle, notificationOptions);
-        });
 
         // Schedule daily notification at specified time
         async function scheduleDailyNotification(timeString) {
