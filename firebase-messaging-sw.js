@@ -20,7 +20,7 @@ messaging.onBackgroundMessage((payload) => {
     
     const notificationTitle = payload.notification.title || 'Between Lines';
     const notificationOptions = {
-        body: payload.notification.body || 'Your daily reflection is ready',
+        body: payload.notification.body || 'A quiet thought for today.',
         icon: '/icon-192.png',
         badge: '/icon-192.png',
         tag: 'daily-reminder',
