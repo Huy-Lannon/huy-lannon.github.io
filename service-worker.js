@@ -35,3 +35,27 @@ self.addEventListener('activate', event => {
     })
   );
 });
+
+// Handle notification display
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  event.waitUntil(
+    clients.openWindow('/')
+  );
+});
+
+// Function to show daily notification
+self.showDailyNotification = function() {
+  const options = {
+    body: 'Your daily literary reflection is waiting for you.',
+    icon: '/icon-192.png',
+    badge: '/icon-192.png',
+    tag: 'daily-reminder',
+    requireInteraction: false,
+    actions: [
+      { action: 'open', title: 'Read Now' }
+    ]
+  };
+  
+  self.registration.showNotification('Between Lines', options);
+};
