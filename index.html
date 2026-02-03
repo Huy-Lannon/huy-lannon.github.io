@@ -988,12 +988,17 @@
             try {
                 if ('serviceWorker' in navigator) {
                     // Register Firebase Messaging service worker first
-                    await navigator.serviceWorker.register('/firebase-messaging-sw.js');
+                    const registration = await navigator.serviceWorker.register('/firebase-messaging-sw.js');
                     console.log('Firebase Messaging service worker registered');
-                    
+
+                    // Wait for the service worker to be ready/active
+                    await navigator.serviceWorker.ready;
+                    console.log('Service worker is active and ready');
+
                     // Now initialize messaging
                     messaging = getMessaging(app);
                     window.debugMessaging = messaging;
+                    window.swRegistration = registration;
                     console.log('Messaging initialized:', messaging);
                     
                     // Handle foreground messages (when app is open)
@@ -1616,9 +1621,11 @@
                             return false;
                         }
                         
-                        // Get FCM token with your VAPID key
+                        // Get FCM token with your VAPID key and service worker registration
+                        const swReg = window.swRegistration || await navigator.serviceWorker.getRegistration('/firebase-messaging-sw.js');
                         const currentToken = await getToken(msg, {
-                            vapidKey: 'BII98JRmwmT_X5fkWsgVojbD6hGEHYmVEHRKFasf38sA35DPgRjXG1z6v7JfTghIpurVDSkp8gxbxf3YqUlR0Ag'
+                            vapidKey: 'BII98JRmwmT_X5fkWsgVojbD6hGEHYmVEHRKFasf38sA35DPgRjXG1z6v7JfTghIpurVDSkp8gxbxf3YqUlR0Ag',
+                            serviceWorkerRegistration: swReg
                         });
                         
                         if (currentToken) {
