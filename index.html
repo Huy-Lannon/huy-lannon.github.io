@@ -976,8 +976,7 @@
         
         // Make auth available globally for debugging
         window.debugAuth = auth;
-        window.debugDB = db;
-        window.debugMessaging = messaging;        
+        window.debugDB = db;        
         // Initialize messaging - must be done at top level
         let messaging = null;
         
@@ -991,6 +990,7 @@
                     
                     // Now initialize messaging
                     messaging = getMessaging(app);
+                    window.debugMessaging = messaging;
                     console.log('Messaging initialized:', messaging);
                     
                     // Handle foreground messages (when app is open)
