@@ -1599,6 +1599,10 @@
                     
                     // Get FCM token
                     try {
+                        // Wait for service worker to be ready first
+                        await navigator.serviceWorker.ready;
+                        console.log('Service worker is ready');
+                        
                         // Wait for messaging to be initialized
                         const msg = window.debugMessaging;
                         if (!msg) {
